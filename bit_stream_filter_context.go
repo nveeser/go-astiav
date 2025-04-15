@@ -9,6 +9,7 @@ import (
 
 // https://ffmpeg.org/doxygen/7.0/structAVBSFContext.html
 type BitStreamFilterContext struct {
+	classerHandler
 	c *C.AVBSFContext
 }
 
@@ -47,7 +48,7 @@ func (bsfc *BitStreamFilterContext) Class() *Class {
 
 // https://ffmpeg.org/doxygen/7.0/group__lavc__bsf.html#ga242529d54013acf87e94273d298a5ff2
 func (bsfc *BitStreamFilterContext) Initialize() error {
-	return newError(C.av_bsf_init(bsfc.c))
+	return bsfc.newError(C.av_bsf_init(bsfc.c))
 }
 
 // https://ffmpeg.org/doxygen/7.0/structAVBSFContext.html#a5c799e50f572340b69d4c79cda8f2de9
@@ -61,7 +62,7 @@ func (bsfc *BitStreamFilterContext) SendPacket(p *Packet) error {
 	if p != nil {
 		pc = p.c
 	}
-	return newError(C.av_bsf_send_packet(bsfc.c, pc))
+	return bsfc.newError(C.av_bsf_send_packet(bsfc.c, pc))
 }
 
 // https://ffmpeg.org/doxygen/7.0/group__lavc__bsf.html#ga7fffb6c87b91250956e7a2367af56b38
@@ -69,7 +70,7 @@ func (bsfc *BitStreamFilterContext) ReceivePacket(p *Packet) error {
 	if p == nil {
 		return errors.New("astiav: packet must not be nil")
 	}
-	return newError(C.av_bsf_receive_packet(bsfc.c, p.c))
+	return bsfc.newError(C.av_bsf_receive_packet(bsfc.c, p.c))
 }
 
 // https://ffmpeg.org/doxygen/7.0/group__lavc__bsf.html#ga08d53431e76355f88e27763b1940df4f
