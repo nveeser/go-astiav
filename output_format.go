@@ -16,6 +16,20 @@ func newOutputFormatFromC(c *C.AVOutputFormat) *OutputFormat {
 	return &OutputFormat{c: c}
 }
 
+func AllOutputFormats() []*OutputFormat {
+	var out []*OutputFormat
+	var iter unsafe.Pointer
+	var oformat *C.AVOutputFormat
+	for {
+		oformat = C.av_muxer_iterate(&iter)
+		if oformat == nil {
+			break
+		}
+		out = append(out, newOutputFormatFromC(oformat))
+	}
+	return out
+}
+
 // https://ffmpeg.org/doxygen/7.0/group__lavf__encoding.html#ga00bceb049f2b20716e2f36ebc990a350
 func FindOutputFormat(name string) *OutputFormat {
 	cname := C.CString(name)
