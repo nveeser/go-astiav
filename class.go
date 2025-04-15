@@ -79,6 +79,7 @@ func (h *classerHandler) newError(ret C.int) error {
 type Classer interface {
 	Class() *Class
 	handleLog(l LogLevel, msg string)
+	newError(C.int) error
 }
 
 var _ Classer = (*UnknownClasser)(nil)
