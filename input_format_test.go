@@ -29,4 +29,9 @@ func TestInputFormat(t *testing.T) {
 	t.Run("AllInputFormats()", func(t *testing.T) {
 		require.GreaterOrEqual(t, len(AllInputFormats()), 10)
 	})
+	t.Run("Class()", func(t *testing.T) {
+		inputFormat := FindInputFormat(formatName)
+		cls := inputFormat.Class()
+		require.Greater(t, len(cls.List()), 1)
+	})
 }

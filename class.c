@@ -13,7 +13,8 @@ AVClassCategory astiavClassCategory(AVClass* c, void* ptr) {
 
 AVClass** astiavClassParent(AVClass* c, void* ptr) {
 	if (c->parent_log_context_offset) {
-		AVClass** parent = *(AVClass ***) (((uint8_t *) ptr) + c->parent_log_context_offset);
+	    uint8_t* pptr = ((uint8_t *) ptr);
+		AVClass** parent = *(AVClass ***) (pptr + c->parent_log_context_offset);
 		if (parent && *parent) {
 			return parent;
 		}

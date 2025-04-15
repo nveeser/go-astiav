@@ -1,6 +1,7 @@
 package astiav
 
 //#include "class.h"
+//#include "libavutil/opt.h"
 import "C"
 import (
 	"fmt"
@@ -8,12 +9,25 @@ import (
 	"unsafe"
 )
 
+// Class provides the go-type for an AVClass. It holds the pointer to the AVClass struct along
+// with an unsafe.Pointer of an AVOptions-enabled struct (or in some cases a double pointer to an AVClass)
+// which is compatible with AVOption functions and av_log().
+//
+// For Logging see: https://ffmpeg.org/doxygen/2.2/group__lavu__log.html#details
+// For AVOptions see: https://ffmpeg.org/doxygen/7.0/group__avoptions.html
+//
 // https://ffmpeg.org/doxygen/7.0/structAVClass.html
 type Class struct {
-	c   *C.AVClass
+	c *C.AVClass
+	// ptr contains the C pointer to the AVOptions-enabled struct
+	// or any double pointer to an AVClass describing it.
+	// That is any C pointer p which can be cast to an AVClass struct
+	// using `AVClass class = *(const AVClass**)c`.
+	// See: av_get_opt() and av_log()
 	ptr unsafe.Pointer
 }
 
+// Returns a Class instance from a **C.AVClass type.
 func newClassFromC(ptr unsafe.Pointer) *Class {
 	if ptr == nil {
 		return nil
@@ -52,7 +66,93 @@ func (c *Class) String() string {
 	return fmt.Sprintf("%s [%s] @ %p", c.ItemName(), c.Name(), c.ptr)
 }
 
+func (c *Class) Options() *Options {
+	return &Options{c}
+}
+
+// https://www.ffmpeg.org/doxygen/7.0/group__opt__mng.html#gabc75970cd87d1bf47a4ff449470e9225
+func (c *Class) List() (list []*Option) {
+	var prev *C.AVOption
+	for {
+		o := C.av_opt_next(c.ptr, prev)
+		if o == nil {
+			return
+		}
+		list = append(list, newOptionFromC(o))
+		prev = o
+	}
+}
+
+// https://www.ffmpeg.org/doxygen/7.0/group__opt__set__funcs.html#ga5fd4b92bdf4f392a2847f711676a7537
+func (c *Class) Set(name, value string, f OptionSearchFlags) error {
+	cname := C.CString(name)
+	defer C.free(unsafe.Pointer(cname))
+	cvalue := C.CString(value)
+	defer C.free(unsafe.Pointer(cvalue))
+	return newError(C.av_opt_set(c.ptr, cname, cvalue, C.int(f)))
+}
+
+// https://www.ffmpeg.org/doxygen/7.0/group__opt__get__funcs.html#gaf31144e60f9ce89dbe8cbea57a0b232c
+func (c *Class) Get(name string, f OptionSearchFlags) (string, error) {
+	cname := C.CString(name)
+	defer C.free(unsafe.Pointer(cname))
+	var ctemp *C.uint8_t = nil
+	if err := newError(C.av_opt_get(c.ptr, cname, C.int(f), &ctemp)); err != nil {
+		return "", err
+	}
+	cvalue := (*C.char)(unsafe.Pointer(ctemp))
+	if cvalue == nil {
+		return "", nil
+	}
+	defer C.av_freep(unsafe.Pointer(&cvalue))
+	return C.GoString(cvalue), nil
+}
+
+// FindChildClasses returns all the child classes of the specified
+// Classer object.
+func FindChildClasses(c Classer) (out []*Class) {
+	cls := c.Class()
+	if cls == nil {
+		return nil
+	}
+	out = append(out, cls)
+	findChildClasses(cls, true, func(child *Class) bool {
+		out = append(out, child)
+		return true
+	})
+	return out
+}
+
+func findChildClasses(c *Class, recurse bool, f func(c *Class) bool) {
+	if c == nil || c.ptr == nil {
+		panic("invalid")
+	}
+	var childPtr unsafe.Pointer
+	for {
+		childPtr = C.av_opt_child_next(c.ptr, childPtr)
+		if childPtr == nil {
+			break
+		}
+		child := newClassFromC(childPtr)
+		if !f(child) {
+			break
+		}
+		if recurse {
+			findChildClasses(child, recurse, f)
+		}
+	}
+}
+
+// Classer is any go type that wraps a native type that supports
+// AVOptions and AV Logging.
+//
+// Note this is any C struct of which the first field is a pointer to an AVClass
+// struct (e.g. AVCodecContext, AVFormatContext etc). This allows functions like
+// av_opt_get to retrieve the AVClass by casting the struct as a double pointer
+// of AVClass. For some this is constructed by simply taking the address of the
+// AVClass member variable.
 type Classer interface {
+	// Class returns the wrapped AVClass instance of this Context object.
 	Class() *Class
 }
 
@@ -91,44 +191,50 @@ func (c *ClonedClasser) Class() *Class {
 var classers = newClasserPool()
 
 type classerPool struct {
-	m sync.Mutex
-	p map[unsafe.Pointer]Classer
+	pm sync.Map
 }
 
 func newClasserPool() *classerPool {
-	return &classerPool{p: make(map[unsafe.Pointer]Classer)}
+	return &classerPool{}
 }
 
-func (p *classerPool) unsafePointer(c Classer) unsafe.Pointer {
+func (p *classerPool) unsafePointer(c Classer) (unsafe.Pointer, bool) {
 	if c == nil {
-		return nil
+		return nil, false
 	}
 	cl := c.Class()
 	if cl == nil {
-		return nil
+		return nil, false
 	}
-	return cl.ptr
+	return cl.ptr, true
 }
 
 func (p *classerPool) set(c Classer) {
-	p.m.Lock()
-	defer p.m.Unlock()
-	if ptr := p.unsafePointer(c); ptr != nil {
-		p.p[ptr] = c
+	if ptr, ok := p.unsafePointer(c); ok {
+		p.pm.Store(ptr, c)
 	}
 }
 
 func (p *classerPool) del(c Classer) {
-	p.m.Lock()
-	defer p.m.Unlock()
-	if ptr := p.unsafePointer(c); ptr != nil {
-		delete(p.p, ptr)
+	if ptr, ok := p.unsafePointer(c); ok {
+		p.pm.Delete(ptr)
 	}
 }
 
+// get returns a Classer and true if a value was found for the specified ptr
+// value, otherwise it returns nil and false.
 func (p *classerPool) get(ptr unsafe.Pointer) (Classer, bool) {
-	p.m.Lock()
-	defer p.m.Unlock()
-	c, ok := p.p[ptr]
-	return c, ok
+	if c, ok := p.pm.Load(ptr); ok {
+		return c.(Classer), ok
+	}
+	return nil, false
+}
+
+func (p *classerPool) size() int {
+	var i int
+	p.pm.Range(func(key, value interface{}) bool {
+		i++
+		return true
+	})
+	return i
 }

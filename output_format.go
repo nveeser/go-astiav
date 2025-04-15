@@ -40,6 +40,13 @@ func FindOutputFormat(name string) *OutputFormat {
 	return newOutputFormatFromC(C.av_guess_format(cname, nil, nil))
 }
 
+func (f *OutputFormat) Class() *Class {
+	if f.c.priv_class != nil {
+		return newClassFromC(unsafe.Pointer(&f.c.priv_class))
+	}
+	return nil
+}
+
 // https://ffmpeg.org/doxygen/7.0/structAVOutputFormat.html#aad55a00e728a020c1dcfaaf695320445
 func (f *OutputFormat) Flags() IOFormatFlags {
 	return IOFormatFlags(f.c.flags)

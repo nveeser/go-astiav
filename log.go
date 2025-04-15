@@ -64,23 +64,28 @@ func SetLogCallback(c LogCallback) {
 }
 
 //export goAstiavLogCallback
-func goAstiavLogCallback(ptr unsafe.Pointer, level C.int, fmt, msg *C.char) {
+func goAstiavLogCallback(logCtx unsafe.Pointer, level C.int, fmt, msg *C.char) {
 	// No callback
 	if logCallback == nil {
 		return
 	}
-
-	// Get classer
-	var c Classer
-	if ptr != nil {
-		var ok bool
-		if c, ok = classers.get(ptr); !ok {
-			c = newUnknownClasser(ptr)
-		}
-	}
-
+	cls := findLoggingClasser(logCtx)
 	// Callback
-	logCallback(c, LogLevel(level), C.GoString(fmt), C.GoString(msg))
+	logCallback(cls, LogLevel(level), C.GoString(fmt), C.GoString(msg))
+}
+
+func findLoggingClasser(ptr unsafe.Pointer) Classer {
+	for ptr != nil {
+		if cls, ok := classers.get(ptr); ok {
+			return cls
+		}
+		parent := newClassFromC(ptr).Parent()
+		if parent == nil {
+			break
+		}
+		ptr = newClassFromC(ptr).Parent().ptr
+	}
+	return newUnknownClasser(ptr)
 }
 
 // https://ffmpeg.org/doxygen/7.0/group__lavu__log.html#ga5bd132d2e4ac6f9843ef6d8e3c05050a

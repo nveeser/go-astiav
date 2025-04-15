@@ -61,6 +61,13 @@ func FindInputFormat(name string) *InputFormat {
 	return newInputFormatFromC(C.av_find_input_format(cname))
 }
 
+func (f *InputFormat) Class() *Class {
+	if f.c.priv_class != nil {
+		return newClassFromC(unsafe.Pointer(&f.c.priv_class))
+	}
+	return nil
+}
+
 // https://ffmpeg.org/doxygen/7.0/structAVInputFormat.html#a1b30f6647d0c2faf38ba8786d7c3a838
 func (f *InputFormat) Flags() IOFormatFlags {
 	return IOFormatFlags(f.c.flags)

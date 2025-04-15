@@ -259,6 +259,7 @@ func (cc *CodecContext) SetPixelFormat(pixFmt PixelFormat) {
 }
 
 // https://ffmpeg.org/doxygen/7.0/structAVCodecContext.html#af3379123060ad8cc9c321c29af4f8360
+// Deprecated: Use FindChildClasses() to find all embedded AVOptions-enabled structs.
 func (cc *CodecContext) PrivateData() *PrivateData {
 	return newPrivateDataFromC(cc.c.priv_data)
 }
