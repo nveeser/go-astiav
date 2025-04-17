@@ -55,6 +55,7 @@ func (s *SoftwareResampleContext) ConvertFrame(src, dst *Frame) error {
 	if src != nil {
 		csrc = src.c
 	}
+	s.resetLog()
 	return s.newError(C.swr_convert_frame(s.c, dst.c, csrc))
 }
 

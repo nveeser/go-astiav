@@ -325,6 +325,7 @@ func (cc *CodecContext) Open(c *Codec, d *Dictionary) error {
 	if d != nil {
 		dc = &d.c
 	}
+	cc.resetLog()
 	return cc.newError(C.avcodec_open2(cc.c, c.c, dc))
 }
 
@@ -334,6 +335,7 @@ func (cc *CodecContext) ReceivePacket(p *Packet) error {
 	if p != nil {
 		pc = p.c
 	}
+	cc.resetLog()
 	return cc.newError(C.avcodec_receive_packet(cc.c, pc))
 }
 
@@ -343,6 +345,7 @@ func (cc *CodecContext) SendPacket(p *Packet) error {
 	if p != nil {
 		pc = p.c
 	}
+	cc.resetLog()
 	return cc.newError(C.avcodec_send_packet(cc.c, pc))
 }
 
@@ -352,6 +355,7 @@ func (cc *CodecContext) ReceiveFrame(f *Frame) error {
 	if f != nil {
 		fc = f.c
 	}
+	cc.resetLog()
 	return cc.newError(C.avcodec_receive_frame(cc.c, fc))
 }
 
@@ -361,6 +365,7 @@ func (cc *CodecContext) SendFrame(f *Frame) error {
 	if f != nil {
 		fc = f.c
 	}
+	cc.resetLog()
 	return cc.newError(C.avcodec_send_frame(cc.c, fc))
 }
 

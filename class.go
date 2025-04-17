@@ -62,6 +62,10 @@ func (h *classerHandler) handleLog(l LogLevel, msg string) {
 	}
 }
 
+func (h *classerHandler) resetLog() {
+	h.messages = nil
+}
+
 func (h *classerHandler) newError(ret C.int) error {
 	i := int(ret)
 	if i >= 0 {
@@ -75,7 +79,6 @@ func (h *classerHandler) newError(ret C.int) error {
 type Classer interface {
 	Class() *Class
 	handleLog(l LogLevel, msg string)
-	newError(C.int) error
 }
 
 var _ Classer = (*UnknownClasser)(nil)

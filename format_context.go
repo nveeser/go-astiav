@@ -230,6 +230,7 @@ func (fc *FormatContext) OpenInput(url string, fmt *InputFormat, d *Dictionary) 
 	if fmt != nil {
 		fmtc = fmt.c
 	}
+	fc.resetLog()
 	if err := fc.newError(C.avformat_open_input(&fc.c, urlc, fmtc, dc)); err != nil {
 		return err
 	}
@@ -281,6 +282,7 @@ func (fc *FormatContext) FindStreamInfo(d *Dictionary) error {
 	if d != nil {
 		dc = &d.c
 	}
+	fc.resetLog()
 	return fc.newError(C.avformat_find_stream_info(fc.c, dc))
 }
 
@@ -290,16 +292,19 @@ func (fc *FormatContext) ReadFrame(p *Packet) error {
 	if p != nil {
 		pc = p.c
 	}
+	fc.resetLog()
 	return fc.newError(C.av_read_frame(fc.c, pc))
 }
 
 // https://ffmpeg.org/doxygen/7.0/group__lavf__decoding.html#gaa23f7619d8d4ea0857065d9979c75ac8
 func (fc *FormatContext) SeekFrame(streamIndex int, timestamp int64, f SeekFlags) error {
+	fc.resetLog()
 	return fc.newError(C.av_seek_frame(fc.c, C.int(streamIndex), C.int64_t(timestamp), C.int(f)))
 }
 
 // https://ffmpeg.org/doxygen/7.0/group__lavf__decoding.html#gaa03a82c5fd4fe3af312d229ca94cd6f3
 func (fc *FormatContext) Flush() error {
+	fc.resetLog()
 	return fc.newError(C.avformat_flush(fc.c))
 }
 
@@ -309,6 +314,7 @@ func (fc *FormatContext) WriteHeader(d *Dictionary) error {
 	if d != nil {
 		dc = &d.c
 	}
+	fc.resetLog()
 	return fc.newError(C.avformat_write_header(fc.c, dc))
 }
 
@@ -318,6 +324,7 @@ func (fc *FormatContext) WriteFrame(p *Packet) error {
 	if p != nil {
 		pc = p.c
 	}
+	fc.resetLog()
 	return fc.newError(C.av_write_frame(fc.c, pc))
 }
 
@@ -327,11 +334,13 @@ func (fc *FormatContext) WriteInterleavedFrame(p *Packet) error {
 	if p != nil {
 		pc = p.c
 	}
+	fc.resetLog()
 	return fc.newError(C.av_interleaved_write_frame(fc.c, pc))
 }
 
 // https://ffmpeg.org/doxygen/7.0/group__lavf__encoding.html#ga7f14007e7dc8f481f054b21614dfec13
 func (fc *FormatContext) WriteTrailer() error {
+	fc.resetLog()
 	return fc.newError(C.av_write_trailer(fc.c))
 }
 
@@ -357,6 +366,7 @@ func (fc *FormatContext) GuessFrameRate(s *Stream, f *Frame) Rational {
 func (fc *FormatContext) SDPCreate() (string, error) {
 	return stringFromC(1024, func(buf *C.char, size C.size_t) error {
 		fccs := []*C.AVFormatContext{fc.c}
+		fc.resetLog()
 		return fc.newError(C.av_sdp_create(&fccs[0], C.int(len(fccs)), buf, C.int(size)))
 	})
 }
@@ -365,6 +375,7 @@ func (fc *FormatContext) SDPCreate() (string, error) {
 func (fc *FormatContext) FindBestStream(mt MediaType, wantedStreamIndex, relatedStreamIndex int) (*Stream, *Codec, error) {
 	// Find best stream
 	var cCodec *C.AVCodec
+	fc.resetLog()
 	ret := C.av_find_best_stream(fc.c, C.enum_AVMediaType(mt), C.int(wantedStreamIndex), C.int(relatedStreamIndex), &cCodec, 0)
 	if err := fc.newError(ret); err != nil {
 		return nil, nil, err
