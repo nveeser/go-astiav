@@ -136,9 +136,12 @@ func ParseChannelLayout(s string) (ChannelLayout, error) {
 func (f ChannelLayout) MarshalText() ([]byte, error) { return ([]byte)(f.String()), nil }
 func (f *ChannelLayout) UnmarshalText(d []byte) error {
 	s := string(d)
+	if s == "" {
+		return nil
+	}
 	pf, err := ParseChannelLayout(s)
 	if err != nil {
-		return fmt.Errorf("invalid Channel Layout: %s", s)
+		return fmt.Errorf("invalid Channel Layout: %s: %w", s, err)
 	}
 	f.c = pf.c
 	return nil

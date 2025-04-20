@@ -77,7 +77,7 @@ type loggedError struct {
 }
 
 func (e *loggedError) Error() string {
-	return fmt.Sprintf("%s: %s", e.e, strings.Join(e.msg, ": "))
+	return fmt.Sprintf("%s: %s", e.e, strings.TrimSpace(strings.Join(e.msg, ": ")))
 }
 
 func (e *loggedError) Is(err error) bool {
