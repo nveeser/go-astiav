@@ -107,7 +107,7 @@ pacman -Syu
 # Install Requirements to Build
 pacman -S --noconfirm --needed git diffutils mingw-w64-x86_64-toolchain pkg-config make yasm
 # Clone the repository using git
-git clone https://github.com/asticode/go-astiav
+git clone https://github.com/nveeser/go-astiav
 cd go-astiav
 ```
 
