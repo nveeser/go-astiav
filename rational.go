@@ -51,6 +51,11 @@ func NewRationalFromString(s string) (Rational, error) {
 	return NewRational(int(num), int(den)), nil
 }
 
+// IsZero returns true if both num and den are 0 (ie the zero-value).
+func (r Rational) IsZero() bool {
+	return r.Num() == 0 && r.Den() == 0
+}
+
 func (r Rational) Num() int {
 	return int(r.c.num)
 }

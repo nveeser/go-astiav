@@ -24,4 +24,5 @@ func TestOutputFormat(t *testing.T) {
 	t.Run("AllOutputFormats()", func(t *testing.T) {
 		require.GreaterOrEqual(t, len(AllOutputFormats()), 10)
 	})
+	require.Equal(t, []string{"yuv", "rgb"}, outputFormat.Extensions())
 }

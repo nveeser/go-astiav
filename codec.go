@@ -4,6 +4,7 @@ package astiav
 //#include <libavutil/channel_layout.h>
 import "C"
 import (
+	"fmt"
 	"unsafe"
 )
 
@@ -25,7 +26,11 @@ func (c *Codec) Name() string {
 }
 
 func (c *Codec) String() string {
-	return c.Name()
+	var direction = "ENC"
+	if !c.IsEncoder() {
+		direction = "DEC"
+	}
+	return fmt.Sprintf("%s[%s]", c.Name(), direction)
 }
 
 // https://ffmpeg.org/doxygen/7.0/structAVCodec.html#a01a53d07936f4c7ee280444793b6967b
@@ -38,13 +43,13 @@ func (c *Codec) ChannelLayouts() (o []ChannelLayout) {
 	if c.c.ch_layouts == nil {
 		return nil
 	}
-	size := unsafe.Sizeof(*c.c.ch_layouts)
-	for i := 0; ; i++ {
-		v, _ := newChannelLayoutFromC((*C.AVChannelLayout)(unsafe.Pointer(uintptr(unsafe.Pointer(c.c.ch_layouts)) + uintptr(i)*size))).clone()
-		if !v.Valid() {
+	ptr, size := unsafe.Pointer(c.c.ch_layouts), unsafe.Sizeof(*c.c.ch_layouts)
+	for i := uintptr(0); ; i++ {
+		p := (*C.AVChannelLayout)(unsafe.Add(ptr, i*size))
+		if p == nil || p.nb_channels == 0 {
 			break
 		}
-		o = append(o, v)
+		o = append(o, newChannelLayoutFromC(p))
 	}
 	return
 }
@@ -64,13 +69,36 @@ func (c *Codec) PixelFormats() (o []PixelFormat) {
 	if c.c.pix_fmts == nil {
 		return nil
 	}
-	size := unsafe.Sizeof(*c.c.pix_fmts)
-	for i := 0; ; i++ {
-		p := *(*C.int)(unsafe.Pointer(uintptr(unsafe.Pointer(c.c.pix_fmts)) + uintptr(i)*size))
-		if p == C.AV_PIX_FMT_NONE {
+	ptr, size := unsafe.Pointer(c.c.pix_fmts), unsafe.Sizeof(*c.c.pix_fmts)
+	for i := uintptr(0); ; i++ {
+		p := (*C.int)(unsafe.Add(ptr, i*size))
+		if *p == C.AV_PIX_FMT_NONE {
 			break
 		}
-		o = append(o, PixelFormat(p))
+		o = append(o, PixelFormat(*p))
+	}
+	//size := unsafe.Sizeof(*c.c.pix_fmts)
+	//for i := 0; ; i++ {
+	//	p := *(*C.int)(unsafe.Pointer(uintptr(unsafe.Pointer(c.c.pix_fmts)) + uintptr(i)*size))
+	//	if p == C.AV_PIX_FMT_NONE {
+	//		break
+	//	}
+	//	o = append(o, PixelFormat(p))
+	//}
+	return
+}
+
+func (c *Codec) SupportedSampleRates() (o []int) {
+	if c.c.supported_samplerates == nil {
+		return nil
+	}
+	ptr, size := unsafe.Pointer(c.c.supported_samplerates), unsafe.Sizeof(*c.c.supported_samplerates)
+	for i := uintptr(0); ; i++ {
+		p := (*C.int)(unsafe.Add(ptr, i*size))
+		if p == nil || *p == 0 {
+			break
+		}
+		o = append(o, int(*p))
 	}
 	return
 }
@@ -80,14 +108,22 @@ func (c *Codec) SampleFormats() (o []SampleFormat) {
 	if c.c.sample_fmts == nil {
 		return nil
 	}
-	size := unsafe.Sizeof(*c.c.sample_fmts)
-	for i := 0; ; i++ {
-		p := *(*C.int)(unsafe.Pointer(uintptr(unsafe.Pointer(c.c.sample_fmts)) + uintptr(i)*size))
-		if p == C.AV_SAMPLE_FMT_NONE {
+	ptr, size := unsafe.Pointer(c.c.sample_fmts), unsafe.Sizeof(*c.c.sample_fmts)
+	for i := uintptr(0); ; i++ {
+		p := (*C.int)(unsafe.Add(ptr, i*size))
+		if p == nil || *p == C.AV_SAMPLE_FMT_NONE {
 			break
 		}
-		o = append(o, SampleFormat(p))
+		o = append(o, SampleFormat(*p))
 	}
+	//size := unsafe.Sizeof(*c.c.sample_fmts)
+	//for i := 0; ; i++ {
+	//	p := *(*C.int)(unsafe.Pointer(uintptr(unsafe.Pointer(c.c.sample_fmts)) + uintptr(i)*size))
+	//	if p == C.AV_SAMPLE_FMT_NONE {
+	//		break
+	//	}
+	//	o = append(o, SampleFormat(p))
+	//}
 	return
 }
 
