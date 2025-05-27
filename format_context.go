@@ -1,13 +1,15 @@
 package astiav
 
-//#include <libavcodec/avcodec.h>
-//#include <libavformat/avformat.h>
 import "C"
 import (
 	"fmt"
 	"math"
 	"unsafe"
 )
+
+//#include <libavcodec/avcodec.h>
+//#include <libavformat/avformat.h>
+import "C"
 
 // https://ffmpeg.org/doxygen/7.0/structAVFormatContext.html
 type FormatContext struct {
