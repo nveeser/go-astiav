@@ -311,16 +311,6 @@ func (fc *FormatContext) Flush() error {
 }
 
 // https://ffmpeg.org/doxygen/7.0/group__lavf__encoding.html#ga18b7b10bb5b94c4842de18166bc677cb
-func (fc *FormatContext) InitOutput(d *Dictionary) error {
-	var dc **C.AVDictionary
-	if d != nil {
-		dc = &d.c
-	}
-	fc.resetLog()
-	return fc.newError(C.avformat_init_output(fc.c, dc))
-}
-
-// https://ffmpeg.org/doxygen/7.0/group__lavf__encoding.html#ga18b7b10bb5b94c4842de18166bc677cb
 func (fc *FormatContext) WriteHeader(d *Dictionary) error {
 	var dc **C.AVDictionary
 	if d != nil {
