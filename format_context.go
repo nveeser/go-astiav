@@ -303,6 +303,15 @@ func (fc *FormatContext) Flush() error {
 }
 
 // https://ffmpeg.org/doxygen/7.0/group__lavf__encoding.html#ga18b7b10bb5b94c4842de18166bc677cb
+func (fc *FormatContext) InitOutput(d *Dictionary) error {
+	var dc **C.AVDictionary
+	if d != nil {
+		dc = &d.c
+	}
+	return newError(C.avformat_write_header(fc.c, dc))
+}
+
+// https://ffmpeg.org/doxygen/7.0/group__lavf__encoding.html#ga18b7b10bb5b94c4842de18166bc677cb
 func (fc *FormatContext) WriteHeader(d *Dictionary) error {
 	var dc **C.AVDictionary
 	if d != nil {
@@ -376,6 +385,11 @@ func (fc *FormatContext) FindBestStream(mt MediaType, wantedStreamIndex, related
 		}
 	}
 	return nil, nil, fmt.Errorf("astiav: no stream with index %d", ret)
+}
+
+// https://ffmpeg.org/doxygen/7.0/structAVFormatContext.html#a651c97cb2dcd2241d42f0062a0bbd4e3
+func (fc *FormatContext) URL() string {
+	return C.GoString(fc.c.url)
 }
 
 // https://ffmpeg.org/doxygen/7.0/group__lavf__misc.html#gae2645941f2dc779c307eb6314fd39f10
