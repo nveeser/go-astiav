@@ -94,7 +94,8 @@ func (g *FilterGraph) NewBuffersinkFilterContext(f *Filter, name string) (*Buffe
 	cname := C.CString(name)
 	defer C.free(unsafe.Pointer(cname))
 	var c *C.AVFilterContext
-	if err := newError(C.avfilter_graph_create_filter(&c, f.c, cname, nil, nil, g.c)); err != nil {
+	g.resetLog()
+	if err := g.newError(C.avfilter_graph_create_filter(&c, f.c, cname, nil, nil, g.c)); err != nil {
 		return nil, err
 	}
 	fc := newFilterContext(c)
@@ -127,7 +128,8 @@ func (g *FilterGraph) Parse(content string, inputs, outputs *FilterInOut) error 
 	if outputs != nil {
 		oc = &outputs.c
 	}
-	return newError(C.avfilter_graph_parse_ptr(g.c, cc, ic, oc, nil))
+	g.resetLog()
+	return g.newError(C.avfilter_graph_parse_ptr(g.c, cc, ic, oc, nil))
 }
 
 // https://ffmpeg.org/doxygen/7.0/group__lavfi.html#ga2ecfd3667219b6cd1e37b7047cc0ef2b
@@ -135,7 +137,8 @@ func (g *FilterGraph) ParseSegment(content string) (*FilterGraphSegment, error) 
 	cc := C.CString(content)
 	defer C.free(unsafe.Pointer(cc))
 	var cs *C.AVFilterGraphSegment
-	if err := newError(C.avfilter_graph_segment_parse(g.c, cc, 0, &cs)); err != nil {
+	g.resetLog()
+	if err := g.newError(C.avfilter_graph_segment_parse(g.c, cc, 0, &cs)); err != nil {
 		return nil, err
 	}
 	return newFilterGraphSegmentFromC(cs), nil
@@ -143,7 +146,8 @@ func (g *FilterGraph) ParseSegment(content string) (*FilterGraphSegment, error) 
 
 // https://ffmpeg.org/doxygen/7.0/group__lavfi.html#ga1896c46b7bc6ff1bdb1a4815faa9ad07
 func (g *FilterGraph) Configure() error {
-	return newError(C.avfilter_graph_config(g.c, nil))
+	g.resetLog()
+	return g.newError(C.avfilter_graph_config(g.c, nil))
 }
 
 // https://ffmpeg.org/doxygen/7.0/group__lavfi.html#gaaad7850fb5fe26d35e5d371ca75b79e1
@@ -155,7 +159,8 @@ func (g *FilterGraph) SendCommand(target, cmd, args string, f FilterCommandFlags
 	argsc := C.CString(args)
 	defer C.free(unsafe.Pointer(argsc))
 	response, err = stringFromC(255, func(buf *C.char, size C.size_t) error {
-		return newError(C.avfilter_graph_send_command(g.c, targetc, cmdc, argsc, buf, C.int(size), C.int(f)))
+		g.resetLog()
+		return g.newError(C.avfilter_graph_send_command(g.c, targetc, cmdc, argsc, buf, C.int(size), C.int(f)))
 	})
 	return
 }

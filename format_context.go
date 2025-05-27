@@ -1,13 +1,15 @@
 package astiav
 
-//#include <libavcodec/avcodec.h>
-//#include <libavformat/avformat.h>
 import "C"
 import (
 	"fmt"
 	"math"
 	"unsafe"
 )
+
+//#include <libavcodec/avcodec.h>
+//#include <libavformat/avformat.h>
+import "C"
 
 // https://ffmpeg.org/doxygen/7.0/structAVFormatContext.html
 type FormatContext struct {
@@ -306,6 +308,16 @@ func (fc *FormatContext) SeekFrame(streamIndex int, timestamp int64, f SeekFlags
 func (fc *FormatContext) Flush() error {
 	fc.resetLog()
 	return fc.newError(C.avformat_flush(fc.c))
+}
+
+// https://ffmpeg.org/doxygen/7.0/group__lavf__encoding.html#ga18b7b10bb5b94c4842de18166bc677cb
+func (fc *FormatContext) InitOutput(d *Dictionary) error {
+	var dc **C.AVDictionary
+	if d != nil {
+		dc = &d.c
+	}
+	fc.resetLog()
+	return fc.newError(C.avformat_init_output(fc.c, dc))
 }
 
 // https://ffmpeg.org/doxygen/7.0/group__lavf__encoding.html#ga18b7b10bb5b94c4842de18166bc677cb
