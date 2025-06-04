@@ -6,6 +6,7 @@ import "unsafe"
 
 // https://ffmpeg.org/doxygen/7.0/structAVInputFormat.html
 type InputFormat struct {
+	classerHandler
 	c *C.AVInputFormat
 }
 
@@ -14,6 +15,28 @@ func newInputFormatFromC(c *C.AVInputFormat) *InputFormat {
 		return nil
 	}
 	return &InputFormat{c: c}
+}
+
+func AllInputFormats() []*InputFormat {
+	var out []*InputFormat
+	var iter unsafe.Pointer
+	var iformat *C.AVInputFormat
+	for {
+		iformat = C.av_demuxer_iterate(&iter)
+		if iformat == nil {
+			break
+		}
+		out = append(out, newInputFormatFromC(iformat))
+	}
+	return out
+}
+
+func (f *InputFormat) Class() *Class {
+	if f.c.priv_class != nil {
+		priv_class := f.c.priv_class
+		return &Class{unsafe.Pointer(&priv_class), f.c.priv_class}
+	}
+	return nil
 }
 
 // https://ffmpeg.org/doxygen/7.0/group__lavf__decoding.html#ga40034b6d64d372e1c989e16dde4b459a

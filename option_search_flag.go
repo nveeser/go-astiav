@@ -7,6 +7,6 @@ import "C"
 type OptionSearchFlag int64
 
 const (
-	OptionSearchFlagChildren   = CodecContextFlag(C.AV_OPT_SEARCH_CHILDREN)
-	OptionSearchFlagFakeObject = CodecContextFlag(C.AV_OPT_SEARCH_FAKE_OBJ)
+	OptionSearchFlagChildren   = OptionSearchFlag(C.AV_OPT_SEARCH_CHILDREN)
+	OptionSearchFlagFakeObject = OptionSearchFlag(C.AV_OPT_SEARCH_FAKE_OBJ)
 )

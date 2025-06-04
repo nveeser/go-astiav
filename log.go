@@ -66,14 +66,9 @@ func SetLogCallback(c LogCallback) {
 //export goAstiavLogCallback
 func goAstiavLogCallback(ptr unsafe.Pointer, level C.int, fmt, msg *C.char) {
 	// Get classer
-	var c Classer
-	if ptr != nil {
-		var ok bool
-		if c, ok = classers.get(ptr); !ok {
-			c = newUnknownClasser(ptr)
-		}
-	}
-	handleLog(c, LogLevel(level), C.GoString(fmt), C.GoString(msg))
+	cls, done := classers.get(ptr)
+	defer done()
+	handleLog(cls, LogLevel(level), C.GoString(fmt), C.GoString(msg))
 }
 
 func handleLog(c Classer, l LogLevel, format, msg string) {

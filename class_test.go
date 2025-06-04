@@ -58,7 +58,7 @@ func TestClassers(t *testing.T) {
 	require.NoError(t, err)
 
 	require.Equal(t, cl+13, classers.size())
-	v, ok := classers.get(unsafe.Pointer(f1.c))
+	v, ok := classers.find(unsafe.Pointer(f1.c))
 	require.True(t, ok)
 	require.Equal(t, f1, v)
 
