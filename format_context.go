@@ -168,9 +168,9 @@ func (fc *FormatContext) NbStreams() int {
 }
 
 func (fc *FormatContext) Streams() (ss []*Stream) {
-	scs := (*[(math.MaxInt32 - 1) / unsafe.Sizeof((*C.AVStream)(nil))](*C.AVStream))(unsafe.Pointer(fc.c.streams))
-	for i := 0; i < fc.NbStreams(); i++ {
-		ss = append(ss, newStreamFromC(scs[i]))
+	streams := (*[1 << 30]*C.AVStream)(unsafe.Pointer(fc.c.streams))[:fc.NbStreams():fc.NbStreams()]
+	for _, cstream := range streams {
+		ss = append(ss, newStreamFromC(cstream))
 	}
 	return
 }
@@ -184,7 +184,7 @@ func (fc *FormatContext) OutputFormat() *OutputFormat {
 func (fc *FormatContext) Pb() *IOContext {
 	// If the io context has been created using the format context's OpenInput() method, we need to
 	// make sure to return the same go struct as the one stored in classers
-	if c, ok := classers.get(unsafe.Pointer(fc.c.pb)); ok {
+	if c, ok := classers.find(unsafe.Pointer(fc.c.pb)); ok {
 		if v, ok := c.(*IOContext); ok {
 			return v
 		}

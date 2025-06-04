@@ -9,6 +9,7 @@ import (
 
 // https://ffmpeg.org/doxygen/7.0/structAVCodec.html
 type Codec struct {
+	classerHandler
 	c *C.AVCodec
 }
 
@@ -22,6 +23,14 @@ func newCodecFromC(c *C.AVCodec) *Codec {
 // https://ffmpeg.org/doxygen/7.0/structAVCodec.html#ad3daa3e729850b573c139a83be8938ca
 func (c *Codec) Name() string {
 	return C.GoString(c.c.name)
+}
+
+func (c *Codec) Class() *Class {
+	if c.c.priv_class != nil {
+		priv_class := c.c.priv_class
+		return &Class{unsafe.Pointer(&priv_class), c.c.priv_class}
+	}
+	return nil
 }
 
 func (c *Codec) String() string {
