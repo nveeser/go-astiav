@@ -5,6 +5,7 @@ package astiav
 //#include <stdlib.h>
 import "C"
 import (
+	"strings"
 	"unsafe"
 )
 
@@ -77,6 +78,41 @@ func (d *Dictionary) Unpack(b []byte) error {
 	return bytesToC(b, func(b *C.uint8_t, size C.size_t) error {
 		return newError(C.av_packet_unpack_dictionary(b, size, &d.c))
 	})
+}
+func (d *Dictionary) String() string {
+	var entries []string
+	d.Iterate(func(k, v string) bool {
+		entries = append(entries, k+":"+v)
+		return true
+	})
+	return "[ " + strings.Join(entries, " ") + " ]"
+}
+
+// ToMap returns the dictionary as a go map[string]string.
+// If the dictionary contains duplicate keys, only the last is returned.
+func (d *Dictionary) ToMap() map[string]string {
+	m := make(map[string]string)
+	d.Iterate(func(k, v string) bool {
+		m[k] = v
+		return true
+	})
+	return m
+}
+
+func (d *Dictionary) Iterate(yield func(key, value string) bool) {
+	if d == nil {
+		return
+	}
+	var curr *DictionaryEntry
+	for {
+		curr = d.Get("", curr, DictionaryFlags(DictionaryFlagIgnoreSuffix))
+		if curr == nil {
+			break
+		}
+		if !yield(curr.Key(), curr.Value()) {
+			break
+		}
+	}
 }
 
 // https://ffmpeg.org/doxygen/7.0/group__lavu__dict.html#ga59a6372b124b306e3a2233723c5cdc78

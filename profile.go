@@ -97,3 +97,7 @@ const (
 	ProfileVp92                              = Profile(C.FF_PROFILE_VP9_2)
 	ProfileVp93                              = Profile(C.FF_PROFILE_VP9_3)
 )
+
+func ProfileName(codecID CodecID, p Profile) string {
+	return C.GoString(C.avcodec_profile_name((C.enum_AVCodecID)(codecID), C.int(p)))
+}

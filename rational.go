@@ -31,6 +31,10 @@ func NewRational(num, den int) Rational {
 	return r
 }
 
+func (r Rational) IsZero() bool {
+	return r.Num() == 0 && r.Den() == 0
+}
+
 func (r Rational) Num() int {
 	return int(r.c.num)
 }
