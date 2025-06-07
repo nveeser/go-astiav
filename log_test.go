@@ -56,7 +56,7 @@ func TestLog(t *testing.T) {
 	Log(nil, LogLevelError, "test error log\n")
 	require.Equal(t, []logItem{}, lis)
 
-	lcs := []Classer{}
+	var lcs []Classer
 	SetLogCallback(func(c Classer, l LogLevel, fmt, msg string) {
 		if c != nil {
 			lcs = append(lcs, c)

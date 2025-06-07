@@ -1,10 +1,20 @@
 package astiav
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 )
+
+func ExampleAllInputFormats() {
+	for _, x := range AllInputFormats() {
+		fmt.Printf("InputFormat: %s %v\n", x.Name(), x.Class())
+		for _, child := range FindClasses(x) {
+			fmt.Printf("  Class: %s Item: %s\n", child.Name(), child.ItemName())
+		}
+	}
+}
 
 func TestInputFormat(t *testing.T) {
 	formatName := "rawvideo"
@@ -13,4 +23,7 @@ func TestInputFormat(t *testing.T) {
 	require.Equal(t, formatName, inputFormat.Name())
 	require.Equal(t, formatName, inputFormat.String())
 	require.Equal(t, "raw video", inputFormat.LongName())
+	t.Run("AllInputFormats()", func(t *testing.T) {
+		require.GreaterOrEqual(t, len(AllInputFormats()), 10)
+	})
 }
