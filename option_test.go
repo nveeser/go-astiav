@@ -10,25 +10,6 @@ import (
 )
 
 func TestOption(t *testing.T) {
-	//for _, x := range AllOutputFormats() {
-	//	fmt.Printf("OutputFormat: %s %v\n", x.Name(), x.Class())
-	//	for _, child := range FindClasses(x) {
-	//		fmt.Printf("  Class: %s Item: %s\n", child.Name(), child.ItemName())
-	//	}
-	//}
-	//for _, x := range AllInputFormats() {
-	//	fmt.Printf("InputFormat: %s %v\n", x.Name(), x.Class())
-	//	for _, child := range FindClasses(x) {
-	//		fmt.Printf("  Class: %s Item: %s\n", child.Name(), child.ItemName())
-	//	}
-	//}
-	//for _, x := range Codecs() {
-	//	fmt.Printf("Codec: %s %v\n", x.Name(), x.Class())
-	//	for _, child := range FindClasses(x) {
-	//		fmt.Printf("  Class: %s Item: %s\n", child.Name(), child.ItemName())
-	//	}
-	//}
-
 	fc, err := AllocOutputFormatContext(nil, "mp4", "")
 	require.NoError(t, err)
 
