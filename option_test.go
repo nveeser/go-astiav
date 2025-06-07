@@ -10,31 +10,32 @@ import (
 )
 
 func TestOption(t *testing.T) {
-	for _, x := range AllOutputFormats() {
-		fmt.Printf("OutputFormat: %s %v\n", x.Name(), x.Class())
-		for _, child := range FindClasses(x) {
-			fmt.Printf("  Class: %s Item: %s\n", child.Name(), child.ItemName())
-		}
-	}
-	for _, x := range AllInputFormats() {
-		fmt.Printf("InputFormat: %s %v\n", x.Name(), x.Class())
-		for _, child := range FindClasses(x) {
-			fmt.Printf("  Class: %s Item: %s\n", child.Name(), child.ItemName())
-		}
-	}
-	for _, x := range Codecs() {
-		fmt.Printf("Codec: %s %v\n", x.Name(), x.Class())
-		for _, child := range FindClasses(x) {
-			fmt.Printf("  Class: %s Item: %s\n", child.Name(), child.ItemName())
-		}
-	}
+	//for _, x := range AllOutputFormats() {
+	//	fmt.Printf("OutputFormat: %s %v\n", x.Name(), x.Class())
+	//	for _, child := range FindClasses(x) {
+	//		fmt.Printf("  Class: %s Item: %s\n", child.Name(), child.ItemName())
+	//	}
+	//}
+	//for _, x := range AllInputFormats() {
+	//	fmt.Printf("InputFormat: %s %v\n", x.Name(), x.Class())
+	//	for _, child := range FindClasses(x) {
+	//		fmt.Printf("  Class: %s Item: %s\n", child.Name(), child.ItemName())
+	//	}
+	//}
+	//for _, x := range Codecs() {
+	//	fmt.Printf("Codec: %s %v\n", x.Name(), x.Class())
+	//	for _, child := range FindClasses(x) {
+	//		fmt.Printf("  Class: %s Item: %s\n", child.Name(), child.ItemName())
+	//	}
+	//}
 
 	fc, err := AllocOutputFormatContext(nil, "mp4", "")
 	require.NoError(t, err)
 
 	classes := map[string]*Class{}
-	for _, child := range FindClasses(fc) {
-		classes[child.Name()] = child
+	for _, class := range FindClasses(fc) {
+		fmt.Printf("  Class: %s Item: %s\n", class.Name(), class.ItemName())
+		classes[class.Name()] = class
 	}
 	require.Len(t, classes, 2)
 	require.Contains(t, slices.Collect(maps.Keys(classes)), "AVFormatContext", "mov/mp4/tgp/psp/tg2/ipod/ismv/f4v muxer")

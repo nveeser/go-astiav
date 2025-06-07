@@ -36,19 +36,16 @@ func TestLog(t *testing.T) {
 	require.Equal(t, []logItem{
 		{
 			c:   f,
-			fmt: "warning %s",
-			l:   LogLevelWarning,
 			msg: "warning arg",
+			l:   LogLevelWarning,
 		},
 		{
 			c:   f,
-			fmt: "error",
 			l:   LogLevelError,
 			msg: "error",
 		},
 		{
 			c:   f,
-			fmt: "fatal",
 			l:   LogLevelFatal,
 			msg: "fatal",
 		},

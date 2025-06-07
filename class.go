@@ -112,7 +112,7 @@ func FindClasses(c Classer) (out []*Class) {
 	}
 	out = append(out, cls)
 	findChildClasses(cls, true, func(child *Class) bool {
-		out = append(out, cls)
+		out = append(out, child)
 		return true
 	})
 	return out
