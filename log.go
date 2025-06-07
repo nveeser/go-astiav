@@ -5,6 +5,7 @@ package astiav
 //#include <stdlib.h>
 import "C"
 import (
+	"fmt"
 	"unsafe"
 )
 
@@ -64,11 +65,11 @@ func SetLogCallback(c LogCallback) {
 }
 
 //export goAstiavLogCallback
-func goAstiavLogCallback(ptr unsafe.Pointer, level C.int, fmt, msg *C.char) {
+func goAstiavLogCallback(ptr unsafe.Pointer, level C.int, msg *C.char) {
 	// Get classer
 	cls, done := classers.get(ptr)
 	defer done()
-	handleLog(cls, LogLevel(level), C.GoString(fmt), C.GoString(msg))
+	handleLog(cls, LogLevel(level), "", C.GoString(msg))
 }
 
 func handleLog(c Classer, l LogLevel, format, msg string) {
@@ -86,19 +87,16 @@ func ResetLogCallback() {
 }
 
 // https://ffmpeg.org/doxygen/7.0/group__lavu__log.html#gabd386ffd4b27637cf34e98d5d1a6e8ae
-func Log(c Classer, l LogLevel, fmt string, args ...string) {
-	fmtc := C.CString(fmt)
-	defer C.free(unsafe.Pointer(fmtc))
-	argc := (*C.char)(nil)
-	if len(args) > 0 {
-		argc = C.CString(args[0])
-		defer C.free(unsafe.Pointer(argc))
-	}
+func Log(c Classer, l LogLevel, format string, args ...any) {
+	msg := fmt.Sprintf(format, args...)
+	msgc := C.CString(msg)
+	defer C.free(unsafe.Pointer(msgc))
+
 	var ptr unsafe.Pointer
 	if c != nil {
 		if cl := c.Class(); cl != nil {
 			ptr = cl.ptr
 		}
 	}
-	C.astiavLog(ptr, C.int(l), fmtc, argc)
+	C.astiavLog(ptr, C.int(l), msgc)
 }

@@ -23,6 +23,7 @@ const (
 	ErrEncoderNotFound  = Error(C.AVERROR_ENCODER_NOT_FOUND)
 	ErrEof              = Error(C.AVERROR_EOF)
 	ErrEperm            = Error(-(C.EPERM))
+	ErrInvalidValue     = Error(-(C.EINVAL))
 	ErrEpipe            = Error(-(C.EPIPE))
 	ErrEtimedout        = Error(-(C.ETIMEDOUT))
 	ErrExit             = Error(C.AVERROR_EXIT)
@@ -77,7 +78,7 @@ type loggedError struct {
 }
 
 func (e *loggedError) Error() string {
-	return fmt.Sprintf("%s: %s", e.e, strings.TrimSpace(strings.Join(e.msg, ": ")))
+	return fmt.Sprintf("%s[%d]: %s", e.e, int(e.e), strings.TrimSpace(strings.Join(e.msg, ": ")))
 }
 
 func (e *loggedError) Is(err error) bool {

@@ -62,25 +62,25 @@ func (t OptionType) String() string {
 }
 
 const (
-	OptionTypeFlags     = OptionType(C.AV_OPT_TYPE_FLAGS)
+	OptionTypeString    = OptionType(C.AV_OPT_TYPE_STRING)
+	OptionTypeBool      = OptionType(C.AV_OPT_TYPE_BOOL)
 	OptionTypeInt       = OptionType(C.AV_OPT_TYPE_INT)
 	OptionTypeInt64     = OptionType(C.AV_OPT_TYPE_INT64)
+	OptionTypeUint64    = OptionType(C.AV_OPT_TYPE_UINT64)
 	OptionTypeDouble    = OptionType(C.AV_OPT_TYPE_DOUBLE)
 	OptionTypeFloat     = OptionType(C.AV_OPT_TYPE_FLOAT)
-	OptionTypeString    = OptionType(C.AV_OPT_TYPE_STRING)
 	OptionTypeRational  = OptionType(C.AV_OPT_TYPE_RATIONAL)
-	OptionTypeBinary    = OptionType(C.AV_OPT_TYPE_BINARY) // offset must point to a pointer immediately followed by an int for the length
-	OptionTypeDict      = OptionType(C.AV_OPT_TYPE_DICT)
-	OptionTypeUint64    = OptionType(C.AV_OPT_TYPE_UINT64)
-	OptionTypeConst     = OptionType(C.AV_OPT_TYPE_CONST)
+	OptionTypeVideoRate = OptionType(C.AV_OPT_TYPE_VIDEO_RATE) // offset must point to AVRational
+	OptionTypeBinary    = OptionType(C.AV_OPT_TYPE_BINARY)     // offset must point to a pointer immediately followed by an int for the length
 	OptionTypeImageSize = OptionType(C.AV_OPT_TYPE_IMAGE_SIZE) // offset must point to two consecutive integers
+	OptionTypeConst     = OptionType(C.AV_OPT_TYPE_CONST)
+	OptionTypeDict      = OptionType(C.AV_OPT_TYPE_DICT)
 	OptionTypePixelFmt  = OptionType(C.AV_OPT_TYPE_PIXEL_FMT)
 	OptionTypeSampleFmt = OptionType(C.AV_OPT_TYPE_SAMPLE_FMT)
-	OptionTypeVideoRate = OptionType(C.AV_OPT_TYPE_VIDEO_RATE) // offset must point to AVRational
 	OptionTypeDuration  = OptionType(C.AV_OPT_TYPE_DURATION)
 	OptionTypeColor     = OptionType(C.AV_OPT_TYPE_COLOR)
-	OptionTypeBool      = OptionType(C.AV_OPT_TYPE_BOOL)
 	OptionTypeChlayout  = OptionType(C.AV_OPT_TYPE_CHLAYOUT)
+	OptionTypeFlags     = OptionType(C.AV_OPT_TYPE_FLAGS)
 	OptionTypeFlagArray = OptionType(C.AV_OPT_TYPE_FLAG_ARRAY)
 )
 

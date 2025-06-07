@@ -168,7 +168,7 @@ func (fc *FormatContext) NbStreams() int {
 }
 
 func (fc *FormatContext) Streams() (ss []*Stream) {
-	streams := (*[1 << 30]*C.AVStream)(unsafe.Pointer(fc.c.streams))[:fc.NbStreams():fc.NbStreams()]
+	streams := unsafe.Slice(fc.c.streams, fc.c.nb_streams)
 	for _, cstream := range streams {
 		ss = append(ss, newStreamFromC(cstream))
 	}
