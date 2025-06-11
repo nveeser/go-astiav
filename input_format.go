@@ -2,7 +2,10 @@ package astiav
 
 //#include <libavformat/avformat.h>
 import "C"
-import "unsafe"
+import (
+	"os"
+	"unsafe"
+)
 
 // https://ffmpeg.org/doxygen/7.0/structAVInputFormat.html
 type InputFormat struct {
@@ -15,6 +18,28 @@ func newInputFormatFromC(c *C.AVInputFormat) *InputFormat {
 		return nil
 	}
 	return &InputFormat{c: c}
+}
+
+func ProbeInputFormat(filename string) (*InputFormat, int, error) {
+	f, err := os.Open(filename)
+	if err != nil {
+		return nil, 0, err
+	}
+	defer f.Close()
+	ioContext, err := AllocIOContext(4096, false, f.Read, f.Seek, nil)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	var format *C.AVInputFormat
+	cfilename := C.CString(filename)
+	defer C.free(unsafe.Pointer(cfilename))
+	ioContext.resetLog()
+	ret := C.av_probe_input_buffer2(ioContext.c, &format, cfilename, nil, 0, 0)
+	if err = ioContext.newError(ret); err != nil {
+		return nil, 0, err
+	}
+	return newInputFormatFromC(format), int(ret), nil
 }
 
 func AllInputFormats() []*InputFormat {
