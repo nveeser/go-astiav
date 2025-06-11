@@ -15,6 +15,12 @@ func ExampleAllInputFormats() {
 		}
 	}
 }
+func TestProbeInputFormat(t *testing.T) {
+	format, score, err := ProbeInputFormat("testdata/video.mp4")
+	require.Nil(t, err)
+	require.Greater(t, score, 0)
+	require.NotNil(t, format)
+}
 
 func TestInputFormat(t *testing.T) {
 	formatName := "rawvideo"
