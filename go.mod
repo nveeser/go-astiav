@@ -1,4 +1,4 @@
-module github.com/asticode/go-astiav
+module github.com/nveeser/go-astiav
 
 go 1.18
 
