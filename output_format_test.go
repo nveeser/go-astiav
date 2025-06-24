@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func ExampleOutputFormats() {
+func ExampleAllOutputFormats() {
 	for _, x := range AllOutputFormats() {
 		fmt.Printf("OutputFormat: %s %v\n", x.Name(), x.Class())
 		for _, child := range FindClasses(x) {

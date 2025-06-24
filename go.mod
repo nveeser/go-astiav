@@ -1,6 +1,8 @@
 module github.com/nveeser/go-astiav
 
-go 1.18
+go 1.21
+
+toolchain go1.24.3
 
 require (
 	github.com/asticode/go-astikit v0.42.0

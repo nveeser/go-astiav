@@ -97,7 +97,7 @@ func (c *Class) GetOption(name string, f OptionSearchFlags) (string, error) {
 	if err := classer.newError(C.av_opt_get(c.ptr, cname, C.int(f), &ctemp)); err != nil {
 		return "", err
 	}
-	cvalue := (*C.char)(ctemp)
+	cvalue := (*C.char)(unsafe.Pointer(ctemp))
 	if cvalue == nil {
 		return "", nil
 	}

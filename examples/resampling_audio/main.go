@@ -7,7 +7,7 @@ import (
 	"log"
 	"strings"
 
-	"github.com/asticode/go-astiav"
+	"github.com/nveeser/go-astiav"
 )
 
 var (
