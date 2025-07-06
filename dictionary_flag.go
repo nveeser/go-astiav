@@ -3,6 +3,8 @@ package astiav
 //#include <libavutil/dict.h>
 import "C"
 
+//go:generate go run internal/cmd/enums/enumflags.go -flag_types DictionaryFlag
+
 // https://ffmpeg.org/doxygen/7.0/group__lavu__dict.html#gad9cbc53cec515b72ae7caa2e194c6bc0
 type DictionaryFlag int64
 

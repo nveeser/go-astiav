@@ -1,0 +1,13 @@
+var {{.SuffixMapName}} = map[{{.TypeName}}]string{
+	{{- range .SuffixEntries}}
+	{{.Enum}}: "{{.String}}",
+	{{- end}}
+}
+
+{{- if .CgoEntries}}
+var {{.CgoMapName}} = map[{{.TypeName}}]string{
+	{{- range .CgoEntries}}
+	{{.Enum}}: "{{.String}}",
+	{{- end}}
+}
+{{end}}

@@ -6,6 +6,8 @@ import "C"
 // https://ffmpeg.org/doxygen/7.0/avformat_8h.html#a752cce390d480521919aa5d8be24ac0b
 type IOFormatFlag int64
 
+//go:generate go run internal/cmd/enums/enumflags.go -flag_types IOFormatFlag
+
 const (
 	IOFormatFlagNofile       = IOFormatFlag(C.AVFMT_NOFILE)
 	IOFormatFlagNeednumber   = IOFormatFlag(C.AVFMT_NEEDNUMBER)

@@ -6,6 +6,8 @@ import "C"
 // https://ffmpeg.org/doxygen/7.0/pixdesc_8h.html#ac7c7d0be16fb9b6f05b3e0d463cd037b
 type PixelFormatDescriptorFlag int64
 
+//go:generate go run internal/cmd/enums/enumflags.go -flag_types PixelFormatDescriptorFlag
+
 const (
 	PixelFormatDescriptorFlagBe        = PixelFormatDescriptorFlag(C.AV_PIX_FMT_FLAG_BE)
 	PixelFormatDescriptorFlagPal       = PixelFormatDescriptorFlag(C.AV_PIX_FMT_FLAG_PAL)

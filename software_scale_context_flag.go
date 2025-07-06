@@ -6,6 +6,8 @@ import "C"
 // https://ffmpeg.org/doxygen/7.0/group__libsws.html#ga6110064d9edfbec77ca5c3279cb75c31
 type SoftwareScaleContextFlag int64
 
+//go:generate go run internal/cmd/enums/enumflags.go -flag_types SoftwareScaleContextFlag
+
 const (
 	SoftwareScaleContextFlagArea         = SoftwareScaleContextFlag(C.SWS_AREA)
 	SoftwareScaleContextFlagBicubic      = SoftwareScaleContextFlag(C.SWS_BICUBIC)
