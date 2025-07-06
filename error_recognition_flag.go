@@ -6,6 +6,8 @@ import "C"
 // https://ffmpeg.org/doxygen/7.0/defs_8h.html#a16258b3283a3d34c893dd9a39e29e369
 type ErrorRecognitionFlag int64
 
+//go:generate go run internal/cmd/enums/enumflags.go -flag_types ErrorRecognitionFlag
+
 const (
 	ErrorRecognitionFlagAggressive = ErrorRecognitionFlag(C.AV_EF_AGGRESSIVE)
 	ErrorRecognitionFlagBitstream  = ErrorRecognitionFlag(C.AV_EF_BITSTREAM)

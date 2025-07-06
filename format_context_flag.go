@@ -6,6 +6,8 @@ import "C"
 // https://ffmpeg.org/doxygen/7.0/avformat_8h.html#a69e2c8bc119c0245ff6092f9db4d12ae
 type FormatContextFlag int64
 
+//go:generate go run internal/cmd/enums/enumflags.go -flag_types FormatContextFlag
+
 const (
 	FormatContextFlagGenPts         = FormatContextFlag(C.AVFMT_FLAG_GENPTS)
 	FormatContextFlagIgnidx         = FormatContextFlag(C.AVFMT_FLAG_IGNIDX)

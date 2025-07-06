@@ -6,6 +6,8 @@ import "C"
 // https://ffmpeg.org/doxygen/7.0/avformat_8h.html#ac736f8f4afc930ca1cda0b43638cc678
 type SeekFlag int64
 
+//go:generate go run internal/cmd/enums/enumflags.go -flag_types SeekFlag
+
 const (
 	SeekFlagAny      = SeekFlag(C.AVSEEK_FLAG_ANY)
 	SeekFlagBackward = SeekFlag(C.AVSEEK_FLAG_BACKWARD)

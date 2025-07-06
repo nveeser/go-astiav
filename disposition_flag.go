@@ -6,6 +6,8 @@ import "C"
 // https://ffmpeg.org/doxygen/7.0/avformat_8h.html#af09f200b4cd9bf0baa05671436eef2fb
 type DispositionFlag int64
 
+//go:generate go run internal/cmd/enums/enumflags.go -flag_types DispositionFlag
+
 const (
 	DispositionFlagDefault         = DispositionFlag(C.AV_DISPOSITION_DEFAULT)
 	DispositionFlagDub             = DispositionFlag(C.AV_DISPOSITION_DUB)

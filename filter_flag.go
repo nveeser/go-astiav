@@ -6,6 +6,8 @@ import "C"
 // https://ffmpeg.org/doxygen/7.0/group__lavfi.html#gae6ed6c10a03508829bdf17560e3e10e5
 type FilterFlag int64
 
+//go:generate go run internal/cmd/enums/enumflags.go -flag_types FilterFlag
+
 const (
 	FilterFlagDynamicInputs           = FilterFlag(C.AVFILTER_FLAG_DYNAMIC_INPUTS)
 	FilterFlagDynamicOutputs          = FilterFlag(C.AVFILTER_FLAG_DYNAMIC_OUTPUTS)

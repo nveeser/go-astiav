@@ -6,6 +6,8 @@ import "C"
 // https://ffmpeg.org/doxygen/7.0/group__lavc__core.html#gaa52d62f5dbfc4529388f0454ae671359
 type CodecContextFlag int64
 
+//go:generate go run internal/cmd/enums/enumflags.go -flag_types CodecContextFlag,CodecContextFlag2
+
 const (
 	CodecContextFlagUnaligned     = CodecContextFlag(C.AV_CODEC_FLAG_UNALIGNED)
 	CodecContextFlagQscale        = CodecContextFlag(C.AV_CODEC_FLAG_QSCALE)
