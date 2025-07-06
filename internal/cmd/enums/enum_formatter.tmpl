@@ -1,0 +1,18 @@
+func (f {{.TypeName}}) Format(s fmt.State, verb rune) {
+	var nameMap map[{{.TypeName}}]string
+	switch verb {
+	case 's':
+		nameMap = {{.SuffixMapName}}
+{{- if .CgoEntries}}
+	case 'c':
+		nameMap = {{.CgoMapName}}
+{{- end}}
+	default:
+		fmt.Fprintf(s, fmt.FormatString(s, verb), int64(f))
+		return
+	}
+    fmt.Fprint(s, nameMap[f])
+	if s.Flag('+') {
+		fmt.Fprintf(s, "(%d)", int64(f))
+    }
+}

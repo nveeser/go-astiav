@@ -6,6 +6,8 @@ import "C"
 // https://ffmpeg.org/doxygen/7.0/group__lavc__packet.html#ga75603d7c2b8adf5829f4fd2fb860168f
 type PacketFlag int64
 
+//go:generate go run internal/cmd/enums/enumflags.go -flag_types PacketFlag
+
 const (
 	PacketFlagCorrupt = PacketFlag(C.AV_PKT_FLAG_CORRUPT)
 	PacketFlagDiscard = PacketFlag(C.AV_PKT_FLAG_DISCARD)

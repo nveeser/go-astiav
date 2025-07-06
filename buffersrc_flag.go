@@ -6,6 +6,8 @@ import "C"
 // https://ffmpeg.org/doxygen/7.0/group__lavfi__buffersrc.html#gga9e9505a91a84992d04ba4e85217fb4e4a6efcf61145ec6d60d3a773fcd0797872
 type BuffersrcFlag int64
 
+//go:generate go run internal/cmd/enums/enumflags.go -flag_types BuffersrcFlag
+
 const (
 	BuffersrcFlagNoCheckFormat = BuffersrcFlag(C.AV_BUFFERSRC_FLAG_NO_CHECK_FORMAT)
 	BuffersrcFlagPush          = BuffersrcFlag(C.AV_BUFFERSRC_FLAG_PUSH)
