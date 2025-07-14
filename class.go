@@ -89,7 +89,10 @@ func (c *Class) Set(name, value string, f OptionSearchFlags) error {
 	defer C.free(unsafe.Pointer(cname))
 	cvalue := C.CString(value)
 	defer C.free(unsafe.Pointer(cvalue))
-	return newError(C.av_opt_set(c.ptr, cname, cvalue, C.int(f)))
+	classer, done := classers.ensure(c.ptr)
+	defer done()
+	classer.resetLog()
+	return classer.newError(C.av_opt_set(c.ptr, cname, cvalue, C.int(f)))
 }
 
 // https://www.ffmpeg.org/doxygen/7.0/group__opt__get__funcs.html#gaf31144e60f9ce89dbe8cbea57a0b232c
@@ -97,7 +100,10 @@ func (c *Class) Get(name string, f OptionSearchFlags) (string, error) {
 	cname := C.CString(name)
 	defer C.free(unsafe.Pointer(cname))
 	var ctemp *C.uint8_t = nil
-	if err := newError(C.av_opt_get(c.ptr, cname, C.int(f), &ctemp)); err != nil {
+	classer, done := classers.ensure(c.ptr)
+	defer done()
+	classer.resetLog()
+	if err := classer.newError(C.av_opt_get(c.ptr, cname, C.int(f), &ctemp)); err != nil {
 		return "", err
 	}
 	cvalue := (*C.char)(unsafe.Pointer(ctemp))
@@ -154,11 +160,98 @@ func findChildClasses(c *Class, recurse bool, f func(c *Class) bool) {
 type Classer interface {
 	// Class returns the wrapped AVClass instance of this Context object.
 	Class() *Class
+
+	// ErrMode sets the mode for handling logs passed to the Classer. Messages
+	// consumed by the classer are used to build an error value using newError().
+	ErrMode(m ErrMode)
+
+	// resetLog will clear the message buffer before calling downstream system.
+	resetLog()
+
+	// newError constructs an error value from the return value and
+	// any log messages that have been captured since the last call
+	// to resetLog() or newError().
+	newError(ret C.int) error
+
+	// Returns true if the message was consumed and should not be passed
+	// to the general log handler.
+	handleLog(l LogLevel, msg string) bool
+}
+
+// SetDefaultClasserErrMode sets the default ErrMode
+// for any classer object when
+func SetDefaultClasserErrMode(mode ErrMode) {
+	errModeGlobalDefault = mode
+}
+
+type classerState struct {
+	messages []string
+	mode     ErrMode
+}
+
+// ErrMode defines how a Classer builds a error value from a return code,
+// optionally using captured log messages to build context from the error code.
+type ErrMode struct {
+	Level   LogLevel
+	Consume bool
+}
+
+func (e ErrMode) String() string {
+	return fmt.Sprintf("ErrMode{@%s,always=%t}", e.Level, e.Consume)
+}
+func (e ErrMode) IsZero() bool {
+	return e.Level == 0 && !e.Consume
+}
+
+var (
+	// ErrModeNoLogs uses no logs when building error value from a return code.
+	ErrModeNoLogs = ErrMode{
+		Level:   LogLevelQuiet,
+		Consume: false,
+	}
+	// ErrModeConsumeLog consumes log message of ERROR or lower when building and error
+	// value. Captured log message are not passed to any error handler.
+	ErrModeConsumeLog = ErrMode{
+		Level:   LogLevelError,
+		Consume: true,
+	}
+	// ErrModeUseLog collects log message of ERROR or lower when building and error
+	// value. Matching error messages are also passed to any error handler.
+	ErrModeUseLog = ErrMode{
+		Level:   LogLevelError,
+		Consume: false,
+	}
+	errModeGlobalDefault = ErrModeNoLogs
+)
+
+func (h *classerState) resetLog()         { h.messages = nil }
+func (h *classerState) ErrMode(m ErrMode) { h.mode = m }
+func (h *classerState) handleLog(l LogLevel, msg string) (handled bool) {
+	mode := h.mode
+	if mode.IsZero() {
+		mode = errModeGlobalDefault
+	}
+	if mode.Level < l {
+		return false
+	}
+	h.messages = append(h.messages, msg)
+	return mode.Consume
+}
+
+func (h *classerState) newError(ret C.int) error {
+	i := int(ret)
+	if i >= 0 {
+		return nil
+	}
+	msg := h.messages
+	h.messages = nil
+	return &loggedError{Error(ret), msg}
 }
 
 var _ Classer = (*UnknownClasser)(nil)
 
 type UnknownClasser struct {
+	classerState
 	c *Class
 }
 
@@ -173,6 +266,7 @@ func (c *UnknownClasser) Class() *Class {
 var _ Classer = (*ClonedClasser)(nil)
 
 type ClonedClasser struct {
+	classerState
 	c *Class
 }
 
@@ -228,6 +322,18 @@ func (p *classerPool) get(ptr unsafe.Pointer) (Classer, bool) {
 		return c.(Classer), ok
 	}
 	return nil, false
+}
+
+// ensure returns the classer for the specified pointer or allocates an
+// UnknownClasser for the ptr and returns that with a function to remove it from
+// the pool when complete.
+func (p *classerPool) ensure(ptr unsafe.Pointer) (c Classer, done func()) {
+	done = func() {}
+	val, exists := p.pm.LoadOrStore(ptr, newUnknownClasser(ptr))
+	if !exists {
+		done = func() { p.pm.Delete(ptr) }
+	}
+	return val.(Classer), done
 }
 
 func (p *classerPool) size() int {

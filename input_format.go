@@ -9,6 +9,7 @@ import (
 
 // https://ffmpeg.org/doxygen/7.0/structAVInputFormat.html
 type InputFormat struct {
+	classerState
 	c *C.AVInputFormat
 }
 
@@ -25,7 +26,7 @@ func ProbeInputFormat(filename string) (*InputFormat, int, error) {
 		return nil, 0, err
 	}
 	defer f.Close()
-	ioContext, err := AllocIOContext(4096, false, f.Read, f.Seek, nil)
+	ioCtx, err := AllocIOContext(4096, false, f.Read, f.Seek, nil)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -33,8 +34,9 @@ func ProbeInputFormat(filename string) (*InputFormat, int, error) {
 	var format *C.AVInputFormat
 	cfilename := C.CString(filename)
 	defer C.free(unsafe.Pointer(cfilename))
-	ret := C.av_probe_input_buffer2(ioContext.c, &format, cfilename, nil, 0, 0)
-	if err = newError(ret); err != nil {
+	ioCtx.resetLog()
+	ret := C.av_probe_input_buffer2(ioCtx.c, &format, cfilename, unsafe.Pointer(ioCtx.c), 0, 0)
+	if err = ioCtx.newError(ret); err != nil {
 		return nil, 0, err
 	}
 	return newInputFormatFromC(format), int(ret), nil

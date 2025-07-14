@@ -5,6 +5,7 @@ package astiav
 //#include <stdlib.h>
 import "C"
 import (
+	"fmt"
 	"unsafe"
 )
 
@@ -64,20 +65,16 @@ func SetLogCallback(c LogCallback) {
 }
 
 //export goAstiavLogCallback
-func goAstiavLogCallback(logCtx unsafe.Pointer, level C.int, fmt, msg *C.char) {
-	// No callback
-	if logCallback == nil {
-		return
-	}
-	cls := findLoggingClasser(logCtx)
-	// Callback
-	logCallback(cls, LogLevel(level), C.GoString(fmt), C.GoString(msg))
+func goAstiavLogCallback(logCtx unsafe.Pointer, level C.int, msg *C.char) {
+	cls, done := findLoggingClasser(logCtx)
+	defer done()
+	handleLog(cls, LogLevel(level), "", C.GoString(msg))
 }
 
-func findLoggingClasser(ptr unsafe.Pointer) Classer {
+func findLoggingClasser(ptr unsafe.Pointer) (Classer, func()) {
 	for ptr != nil {
 		if cls, ok := classers.get(ptr); ok {
-			return cls
+			return cls, func() {}
 		}
 		parent := newClassFromC(ptr).Parent()
 		if parent == nil {
@@ -85,7 +82,18 @@ func findLoggingClasser(ptr unsafe.Pointer) Classer {
 		}
 		ptr = newClassFromC(ptr).Parent().ptr
 	}
-	return newUnknownClasser(ptr)
+	return classers.ensure(ptr)
+}
+
+func handleLog(c Classer, l LogLevel, format, msg string) {
+	if c != nil {
+		if c.handleLog(l, msg) {
+			return
+		}
+	}
+	if logCallback != nil {
+		logCallback(c, l, format, msg)
+	}
 }
 
 // https://ffmpeg.org/doxygen/7.0/group__lavu__log.html#ga5bd132d2e4ac6f9843ef6d8e3c05050a
@@ -94,19 +102,16 @@ func ResetLogCallback() {
 }
 
 // https://ffmpeg.org/doxygen/7.0/group__lavu__log.html#gabd386ffd4b27637cf34e98d5d1a6e8ae
-func Log(c Classer, l LogLevel, fmt string, args ...string) {
-	fmtc := C.CString(fmt)
-	defer C.free(unsafe.Pointer(fmtc))
-	argc := (*C.char)(nil)
-	if len(args) > 0 {
-		argc = C.CString(args[0])
-		defer C.free(unsafe.Pointer(argc))
-	}
+func Log(c Classer, l LogLevel, format string, args ...any) {
+	msg := fmt.Sprintf(format, args...)
+	msgc := C.CString(msg)
+	defer C.free(unsafe.Pointer(msgc))
+
 	var ptr unsafe.Pointer
 	if c != nil {
 		if cl := c.Class(); cl != nil {
 			ptr = cl.ptr
 		}
 	}
-	C.astiavLog(ptr, C.int(l), fmtc, argc)
+	C.astiavLog(ptr, C.int(l), msgc)
 }

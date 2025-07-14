@@ -8,6 +8,7 @@ import (
 
 // https://ffmpeg.org/doxygen/7.0/structAVHWFramesContext.html
 type HardwareFramesContext struct {
+	classerState
 	c *C.struct_AVBufferRef
 }
 
@@ -15,7 +16,9 @@ func newHardwareFramesContextFromC(c *C.struct_AVBufferRef) *HardwareFramesConte
 	if c == nil {
 		return nil
 	}
-	return &HardwareFramesContext{c: c}
+	hfc := &HardwareFramesContext{c: c}
+	classers.set(hfc)
+	return hfc
 }
 
 // https://ffmpeg.org/doxygen/7.0/hwcontext_8c.html#ac45a7c039eb4e084b692f69ff5f2e217
@@ -25,12 +28,25 @@ func AllocHardwareFramesContext(hdc *HardwareDeviceContext) *HardwareFramesConte
 
 func (hfc *HardwareFramesContext) Free() {
 	if hfc.c != nil {
+		// Make sure to clone the classer before freeing the object since
+		// the C free method may reset the pointer
+		c := newClonedClasser(hfc)
 		C.av_buffer_unref(&hfc.c)
+		hfc.c = nil
+		// Make sure to remove from classers after freeing the object since
+		// the C free method may use methods needing the classer
+		if c != nil {
+			classers.del(c)
+		}
 	}
 }
 
+func (hfc *HardwareFramesContext) Class() *Class {
+	return newClassFromC(unsafe.Pointer(hfc.c.data))
+}
+
 func (hfc *HardwareFramesContext) data() *C.AVHWFramesContext {
-	return (*C.AVHWFramesContext)(unsafe.Pointer((hfc.c.data)))
+	return (*C.AVHWFramesContext)(unsafe.Pointer(hfc.c.data))
 }
 
 // https://ffmpeg.org/doxygen/7.0/structAVHWFramesContext.html#a9e6f29d0f744930cdd0e8bdff8771520

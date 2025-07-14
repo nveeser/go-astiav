@@ -13,6 +13,7 @@ import (
 
 // https://ffmpeg.org/doxygen/7.0/structAVIOContext.html
 type IOContext struct {
+	classerState
 	c         *C.AVIOContext
 	handlerID unsafe.Pointer
 }
@@ -56,7 +57,7 @@ func AllocIOContext(bufferSize int, writable bool, readFunc IOContextReadFunc, s
 		}
 	}()
 
-	// Since go doesn't allow c to store pointers to go data, we need to create this C pointer
+	// Since go doesn't allow ptr to store pointers to go data, we need to create this C pointer
 	handlerID := C.av_malloc(C.size_t(1))
 	if handlerID == nil {
 		err = errors.New("astiav: allocating handler id failed")
@@ -194,8 +195,9 @@ func (ic *IOContext) Read(b []byte) (n int, err error) {
 	defer C.av_free(buf)
 
 	// Read
+	ic.resetLog()
 	ret := C.avio_read_partial(ic.c, (*C.uchar)(unsafe.Pointer(buf)), C.int(len(b)))
-	if err = newError(ret); err != nil {
+	if err = ic.newError(ret); err != nil {
 		err = fmt.Errorf("astiav: reading failed: %w", err)
 		return
 	}
@@ -208,8 +210,9 @@ func (ic *IOContext) Read(b []byte) (n int, err error) {
 
 // https://ffmpeg.org/doxygen/7.0/avio_8h.html#a03e23bf0144030961c34e803c71f614f
 func (ic *IOContext) Seek(offset int64, whence int) (int64, error) {
+	ic.resetLog()
 	ret := C.avio_seek(ic.c, C.int64_t(offset), C.int(whence))
-	if err := newError(C.int(ret)); err != nil {
+	if err := ic.newError(C.int(ret)); err != nil {
 		return 0, err
 	}
 	return int64(ret), nil

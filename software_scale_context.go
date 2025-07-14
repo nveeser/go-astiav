@@ -9,6 +9,7 @@ import (
 
 // https://ffmpeg.org/doxygen/7.0/structSwsContext.html
 type SoftwareScaleContext struct {
+	classerState
 	c *C.struct_SwsContext
 	// We need to store attributes in GO since C attributes are internal and therefore not accessible
 	dstFormat C.enum_AVPixelFormat
@@ -73,7 +74,6 @@ func (ssc *SoftwareScaleContext) Free() {
 		if c != nil {
 			classers.del(c)
 		}
-
 	}
 }
 
@@ -89,7 +89,8 @@ func (ssc *SoftwareScaleContext) Class() *Class {
 
 // https://ffmpeg.org/doxygen/7.0/group__libsws.html#ga1c72fcf83bd57aea72cf3dadfcf02541
 func (ssc *SoftwareScaleContext) ScaleFrame(src, dst *Frame) error {
-	return newError(C.sws_scale_frame(ssc.c, dst.c, src.c))
+	ssc.resetLog()
+	return ssc.newError(C.sws_scale_frame(ssc.c, dst.c, src.c))
 }
 
 func (ssc *SoftwareScaleContext) update(u softwareScaleContextUpdate) error {
