@@ -3,6 +3,7 @@ package astiav
 import "unsafe"
 
 type PrivateData struct {
+	classerHandler
 	c unsafe.Pointer
 }
 
@@ -13,6 +14,10 @@ func newPrivateDataFromC(c unsafe.Pointer) *PrivateData {
 	return &PrivateData{c: c}
 }
 
-func (pd *PrivateData) Options() *Options {
-	return newOptionsFromC(pd.c)
+//func (pd *PrivateData) Options() *Options {
+//	return newOptionsFromC(pd)
+//}
+
+func (pd *PrivateData) Class() *Class {
+	return newClassFromC(pd.c)
 }

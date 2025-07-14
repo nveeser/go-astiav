@@ -3,6 +3,7 @@
 #include <stdlib.h>
 
 char* astiavClassItemName(AVClass* c, void* ptr) {
+    if (!c->item_name) return NULL;
 	return (char*)c->item_name(ptr);
 }
 

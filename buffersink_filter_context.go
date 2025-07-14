@@ -43,7 +43,8 @@ func (bfc *BuffersinkFilterContext) GetFrame(f *Frame, fs BuffersinkFlags) error
 	if f != nil {
 		cf = f.c
 	}
-	return newError(C.av_buffersink_get_frame_flags(bfc.fc.c, cf, C.int(fs)))
+	bfc.fc.resetLog()
+	return bfc.fc.newError(C.av_buffersink_get_frame_flags(bfc.fc.c, cf, C.int(fs)))
 }
 
 // https://ffmpeg.org/doxygen/7.0/group__lavfi__buffersink__accessors.html#ga955ecf3680e71e10429d7500343be25c

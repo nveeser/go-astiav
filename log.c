@@ -7,7 +7,7 @@ void astiavLogCallback(void *ptr, int level, const char *fmt, va_list vl)
 	if (level > av_log_get_level()) return;
 	char msg[1024];
 	vsprintf(msg, fmt, vl);
-	goAstiavLogCallback(ptr, level, (char*)(fmt), msg);
+	goAstiavLogCallback(ptr, level, msg);
 }
 
 void astiavSetLogCallback()
@@ -20,7 +20,7 @@ void astiavResetLogCallback()
 	av_log_set_callback(av_log_default_callback);
 }
 
-void astiavLog(void* ptr, int level, const char *fmt, char* arg)
+void astiavLog(void* ptr, int level, const char *msg)
 {
-	av_log(ptr, level, fmt, arg);
+	av_log(ptr, level, msg);
 }
