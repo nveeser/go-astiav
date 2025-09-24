@@ -6,6 +6,7 @@ import "C"
 import (
 	"fmt"
 	"strings"
+	"unicode"
 )
 
 // https://ffmpeg.org/doxygen/7.0/group__lavu__error.html#ga586e134e9dad8f57a218b2cd8734b601
@@ -64,6 +65,21 @@ func (e Error) Error() string {
 	return s
 }
 
+func (e Error) toTags() (s []string) {
+	// See: libavutil/macros.h
+	// #define MKTAG(a,b,c,d)   ((a) | ((b) << 8) | ((c) << 16) | ((unsigned)(d) << 24))
+	parts := []int{0, 8, 16, 24}
+	for _, bit := range parts {
+		x := (int(-e) >> bit) & 0xFF
+		if unicode.IsPrint(rune(x)) {
+			s = append(s, string(rune(x)))
+		} else {
+			s = append(s, fmt.Sprintf("%02X", x))
+		}
+	}
+	return
+}
+
 func (e Error) Is(err error) bool {
 	a, ok := err.(Error)
 	if !ok {
@@ -78,7 +94,9 @@ type loggedError struct {
 }
 
 func (e *loggedError) Error() string {
-	return fmt.Sprintf("%s[%d]: %s", e.e, int(e.e), strings.TrimSpace(strings.Join(e.msg, ": ")))
+	return fmt.Sprintf("%s[%s]: %s", e.e,
+		strings.Join(e.e.toTags(), ","),
+		strings.TrimSpace(strings.Join(e.msg, ": ")))
 }
 
 func (e *loggedError) Is(err error) bool {

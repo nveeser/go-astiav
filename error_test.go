@@ -28,6 +28,9 @@ func TestError(t *testing.T) {
 		err2 := fmt.Errorf("test 2: %w", ErrDemuxerNotFound)
 		require.False(t, errors.Is(err2, ErrDecoderNotFound))
 	})
+	t.Run("Tags", func(t *testing.T) {
+		require.Equal(t, ErrInvaliddata.toTags(), []string{"I", "N", "D", "A"})
+	})
 }
 
 func TestLoggedError(t *testing.T) {
