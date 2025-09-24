@@ -32,6 +32,9 @@ func (f *Filter) Flags() FilterFlags {
 
 // https://ffmpeg.org/doxygen/7.0/structAVFilter.html#a28a4776f344f91055f42a4c2a1b15c0c
 func (f *Filter) Name() string {
+	if f == nil {
+		return "<nil>"
+	}
 	return C.GoString(f.c.name)
 }
 
@@ -52,7 +55,7 @@ func (f *Filter) NbOutputs() int {
 // https://ffmpeg.org/doxygen/7.0/structAVFilter.html#ad311151fe6e8c87a89f895bef7c8b98b
 func (f *Filter) Inputs() (ps []*FilterPad) {
 	for idx := 0; idx < f.NbInputs(); idx++ {
-		ps = append(ps, newFilterPad(MediaType(C.avfilter_pad_get_type(f.c.inputs, C.int(idx)))))
+		ps = append(ps, newFilterPad(f.c.inputs, idx))
 	}
 	return
 }
@@ -60,7 +63,7 @@ func (f *Filter) Inputs() (ps []*FilterPad) {
 // https://ffmpeg.org/doxygen/7.0/structAVFilter.html#ad0608786fa3e1ca6e4cc4b67039f77d7
 func (f *Filter) Outputs() (ps []*FilterPad) {
 	for idx := 0; idx < f.NbOutputs(); idx++ {
-		ps = append(ps, newFilterPad(MediaType(C.avfilter_pad_get_type(f.c.outputs, C.int(idx)))))
+		ps = append(ps, newFilterPad(f.c.outputs, idx))
 	}
 	return
 }

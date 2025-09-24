@@ -4,7 +4,6 @@ package astiav
 import "C"
 import (
 	"errors"
-	"math"
 	"unsafe"
 )
 
@@ -141,13 +140,13 @@ func (g *FilterGraph) ParseSegment(content string) (*FilterGraphSegment, error) 
 	if err := g.newError(C.avfilter_graph_segment_parse(g.c, cc, 0, &cs)); err != nil {
 		return nil, err
 	}
-	return newFilterGraphSegmentFromC(cs), nil
+	return newFilterGraphSegmentFromC(g, cs), nil
 }
 
 // https://ffmpeg.org/doxygen/7.0/group__lavfi.html#ga1896c46b7bc6ff1bdb1a4815faa9ad07
 func (g *FilterGraph) Configure() error {
 	g.resetLog()
-	return g.newError(C.avfilter_graph_config(g.c, nil))
+	return g.newError(C.avfilter_graph_config(g.c, unsafe.Pointer(g.c))) // use the graph as logging context
 }
 
 // https://ffmpeg.org/doxygen/7.0/group__lavfi.html#gaaad7850fb5fe26d35e5d371ca75b79e1
@@ -172,9 +171,9 @@ func (g *FilterGraph) NbFilters() int {
 
 // https://ffmpeg.org/doxygen/7.0/structAVFilterGraph.html#a1dafd3d239f7c2f5e3ac109578ef926d
 func (g *FilterGraph) Filters() (fs []*FilterContext) {
-	fcs := (*[(math.MaxInt32 - 1) / unsafe.Sizeof((*C.AVFilterContext)(nil))](*C.AVFilterContext))(unsafe.Pointer(g.c.filters))
-	for i := 0; i < g.NbFilters(); i++ {
-		fs = append(fs, newFilterContext(fcs[i]))
+	slice := unsafe.Slice(g.c.filters, int(g.c.nb_filters))
+	for _, fc := range slice {
+		fs = append(fs, newFilterContext(fc))
 	}
 	return
 }

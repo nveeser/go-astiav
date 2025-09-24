@@ -61,5 +61,40 @@ func (fc *FilterContext) SetHardwareDeviceContext(hdc *HardwareDeviceContext) {
 
 // https://ffmpeg.org/doxygen/7.0/structAVFilterContext.html#a6eee53e57dddfa7cca1cade870c8a44e
 func (fc *FilterContext) Filter() *Filter {
+	if fc == nil {
+		return nil
+	}
 	return newFilterFromC(fc.c.filter)
+}
+
+// https://ffmpeg.org/doxygen/7.0/structAVFilterContext.html#a5b22332d8ddb242c54e19cbfc4b4d353
+func (fc *FilterContext) Name() string {
+	if fc == nil {
+		return "<nil>"
+	}
+	return C.GoString(fc.c.name)
+}
+
+// https://ffmpeg.org/doxygen/7.0/structAVFilterContext.html#a5b22332d8ddb242c54e19cbfc4b4d353
+func (fc *FilterContext) Inputs() (l []*FilterLink) {
+	for _, c := range unsafe.Slice(fc.c.inputs, int(fc.c.nb_inputs)) {
+		if c != nil {
+			l = append(l, newFilterLinkC(c))
+		} else {
+			l = append(l, nil)
+		}
+	}
+	return
+}
+
+// https://ffmpeg.org/doxygen/7.0/structAVFilterContext.html#a5b22332d8ddb242c54e19cbfc4b4d353
+func (fc *FilterContext) Outputs() (l []*FilterLink) {
+	for _, c := range unsafe.Slice(fc.c.outputs, int(fc.c.nb_outputs)) {
+		if c != nil {
+			l = append(l, newFilterLinkC(c))
+		} else {
+			l = append(l, nil)
+		}
+	}
+	return
 }
